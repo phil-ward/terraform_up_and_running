@@ -11,20 +11,28 @@ terraform {
 
 provider "aws" {
   region = "us-east-2"
+
+  default_tags {
+    tags = {
+      Owner     = "team-foo"
+      ManagedBy = "terraform"
+    }
+  }
 }
 
 module "webserver_cluster" {
   source = "../../../../modules/services/webserver-cluster"
 
   # (parameters hidden for clarity)
-
+  ami = "ami-0fb653ca2d3203ac1"
+  server_text = "New server text"
   cluster_name           = var.cluster_name
   db_remote_state_bucket = "terraform-up-and-running-state-phward"
   db_remote_state_key    = "stage/data-stores/mysql/terraform.tfstate"
-
   instance_type = "t2.micro"
   min_size      = 2
   max_size      = 2
+  enable_autoscaling = false
 }
 
 resource "aws_security_group_rule" "allow_testing_inbound" {
