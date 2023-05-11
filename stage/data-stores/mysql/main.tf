@@ -23,6 +23,8 @@ terraform {
 provider "aws" {
   region = "us-east-2"
 
+  alias = "primary"
+
   default_tags {
     tags = {
       Owner     = "team-foo"
@@ -31,13 +33,17 @@ provider "aws" {
   }
 }
 
-resource "aws_db_instance" "example" {
-  identifier_prefix   = "terraform-up-and-running"
-  engine              = "mysql"
-  allocated_storage   = 10
-  instance_class      = "db.t2.micro"
-  db_name             = var.db_name
-  username            = var.db_username
-  password            = var.db_password
-  skip_final_snapshot = true
+module "mysql_primary" {
+  source = "../../../../modules/data-stores/mysql"
+
+  providers = {
+    aws = aws.primary
+  }
+
+  db_name     = "staging_db"
+  db_username = var.db_username
+  db_password = var.db_password
+
+  # Required to support replication
+  backup_retention_period = 0
 }

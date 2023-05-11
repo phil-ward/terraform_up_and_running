@@ -28,9 +28,9 @@ module "webserver_cluster" {
   db_remote_state_bucket = "terraform-up-and-running-state-phward"
   db_remote_state_key    = "prod/data-stores/mysql/terraform.tfstate"
 
-  instance_type = "m4.large"
-  min_size      = 2
-  max_size      = 10
+  instance_type      = "m4.large"
+  min_size           = 2
+  max_size           = 10
   enable_autoscaling = true
 
   custom_tags = {

@@ -13,7 +13,7 @@ terraform {
     # manually, uncomment and fill in the config below.
 
     bucket         = "terraform-up-and-running-state-phward"
-    key            = "prod/data-stores/mysql//terraform.tfstate"
+    key            = "prod/data-stores/mysql/terraform.tfstate"
     region         = "us-east-2"
     dynamodb_table = "terraform-up-and-running-locks"
     encrypt        = true
@@ -22,7 +22,7 @@ terraform {
 
 provider "aws" {
   region = "us-east-2"
-
+  alias  = "primary"
   default_tags {
     tags = {
       Owner     = "team-foo"
@@ -31,13 +31,38 @@ provider "aws" {
   }
 }
 
-resource "aws_db_instance" "example" {
-  identifier_prefix   = "terraform-up-and-running"
-  engine              = "mysql"
-  allocated_storage   = 10
-  instance_class      = "db.t2.micro"
-  db_name             = var.db_name
-  username            = var.db_username
-  password            = var.db_password
-  skip_final_snapshot = true
+provider "aws" {
+  region = "us-west-1"
+
+  alias = "replica"
+  default_tags {
+    tags = {
+      Owner     = "team-foo"
+      ManagedBy = "terraform"
+    }
+  }
+}
+
+module "mysql_primary" {
+  source = "../../../../modules/data-stores/mysql"
+
+  providers = {
+    aws = aws.primary
+  }
+  db_name     = "prod_db"
+  db_username = var.db_username
+  db_password = var.db_password
+
+  # Required to support replication
+  backup_retention_period = 1
+}
+
+module "mysql_replica" {
+  source = "../../../../modules/data-stores/mysql"
+
+  providers = {
+    aws = aws.replica
+  }
+
+  replicate_source_db = module.mysql_primary.arn
 }
