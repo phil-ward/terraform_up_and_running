@@ -21,7 +21,7 @@ provider "aws" {
 }
 
 module "webserver_cluster" {
-  source = "../../../../modules/services/webserver-cluster"
+  source = "../../../../modules/services/hello-world-app"
 
   # (parameters hidden for clarity)
   ami                    = "ami-0fb653ca2d3203ac1"
